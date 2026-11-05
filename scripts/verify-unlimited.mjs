@@ -1,0 +1,51 @@
+/* eslint-env node */
+import assert from 'node:assert/strict';
+import { mkdir, copyFile, readFile } from 'node:fs/promises';
+const {chromium} = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const browser = await chromium.launch({executablePath:process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});
+const page = await browser.newPage({viewport:{width:1280,height:1000}});
+await mkdir('tmp/pdfs/unlimited',{recursive:true});
+await page.goto('http://127.0.0.1:5173');
+await page.getByRole('tab',{name:'Registry Unlimited Brochure',exact:true}).click();
+await page.evaluate(()=>document.fonts.ready);
+await page.evaluate(()=>Promise.all([...document.images].map(i=>i.decode())));
+assert.equal(await page.locator('.a4-page').count(),4);
+const text = await page.locator('.doc-viewport').innerText();
+for(const phrase of ['€199','€2,388','Discuss your move','People remain responsible.','ICP / EC Sales List','Historical reconstruction'])assert(text.includes(phrase),phrase);
+assert(!/€49|€500|€1,999|21%|Sample Trading|Sample Lead|Dennis|HC-REG|Accept securely|free migration|guaranteed savings/i.test(text));
+assert.equal(await page.locator('.doc-viewport a').count(),4);
+for(const a of await page.locator('.doc-viewport a').all())assert.equal(await a.getAttribute('href'),'https://houseofcompanies.io/contact');
+async function checkLayout(mode) {
+ const errors=await page.locator('.a4-page').evaluateAll(pages=>pages.flatMap((p,index)=>{
+  const footer=p.querySelector('footer').getBoundingClientRect();
+  return [...p.querySelectorAll(':scope > div *')].filter(e=>e.children.length===0&&e.getBoundingClientRect().height).filter(e=>e.getBoundingClientRect().bottom>footer.top+1 || e.getBoundingClientRect().right>p.getBoundingClientRect().right+1).map(e=>({page:index+1,text:e.textContent,rect:e.getBoundingClientRect().toJSON()}));
+ }));
+ assert.deepEqual(errors,[],mode);
+}
+await checkLayout('screen');
+for(let i=0;i<4;i++)await page.locator('.a4-page').nth(i).screenshot({path:`tmp/pdfs/unlimited/preview-${i+1}.png`});
+await page.emulateMedia({media:'print'});
+await checkLayout('print');
+assert.equal(await page.locator('.no-print').isVisible(),false);
+await page.pdf({path:'public/registry-unlimited-brochure.pdf',preferCSSPageSize:true,printBackground:true});
+await copyFile('public/registry-unlimited-brochure.pdf','output/pdf/registry-unlimited-brochure.pdf');
+await page.emulateMedia({media:'screen'});
+await page.getByRole('tab',{name:'Quotation',exact:true}).click();
+await page.getByRole('button',{name:'VAT €500',exact:true}).click();
+const downloadPromise=page.waitForEvent('download');
+await page.getByRole('button',{name:'Download Registry Unlimited Brochure PDF',exact:true}).click();
+const download=await downloadPromise;
+assert.equal(download.suggestedFilename(),'Registry-Unlimited-Bookkeeping-Brochure.pdf');
+await download.saveAs('tmp/pdfs/unlimited/download.pdf');
+assert((await readFile('tmp/pdfs/unlimited/download.pdf')).equals(await readFile('public/registry-unlimited-brochure.pdf')));
+assert.equal(await page.getByRole('tab',{name:'Registry Unlimited Brochure',exact:true}).getAttribute('aria-selected'),'true');
+await page.getByRole('tab',{name:'Quotation',exact:true}).click();
+assert.equal(await page.getByRole('button',{name:'VAT €500',exact:true}).getAttribute('aria-pressed'),'true');
+await page.getByRole('tab',{name:'Registry Unlimited Brochure',exact:true}).click();
+await page.setViewportSize({width:390,height:844});
+await page.waitForTimeout(250);
+assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+await checkLayout('mobile');
+assert.equal(await page.getByRole('tab').count(),3);
+console.log('PASS: four pages, screen/print/mobile layout, scope/pricing/privacy, four CTA links, real PDF download, preserved configuration.');
+await browser.close();

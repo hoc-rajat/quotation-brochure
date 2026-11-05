@@ -27,3 +27,13 @@ With the development server at `http://127.0.0.1:5173`, run `node scripts/verify
 - Confirm low-activity eligibility and exact annual assistance scope. The Marketing Message Contract was not available, so copy compliance still requires review.
 - The existing contact route is retained and verified. Sample customer data must be replaced before issuing a real quotation.
 # quotation-brochure
+
+## Registry Unlimited migration brochure
+
+The third document is a separate four-page Netherlands brochure for existing-company bookkeeping migration. Its source is `src/components/unlimited/UnlimitedBrochureDocument.tsx`, with scope and a configurable CTA destination in `src/data/unlimitedBrochure.ts`. The existing quotation, Registry brochure and shared document components are unchanged.
+
+The new download button serves `public/registry-unlimited-brochure.pdf` directly, with selectable text and contact links. The existing two buttons retain their print / Save as PDF behavior. The new static PDF is generated from the same four-page preview; **regenerate it whenever the new brochure content or shared styling changes**, before running the production build.
+
+With Vite running on port 5173 and Playwright available, run `node scripts/verify-unlimited.mjs` (or set `PLAYWRIGHT_MODULE` to an external Playwright module entry). Set `CHROME_PATH` if needed. This renders the current preview to the public PDF and `output/pdf/registry-unlimited-brochure.pdf`, checks four pages in the preview, pricing, prohibited content, CTA destinations, screen/print/mobile layout, the actual download bytes, and retention of quotation selections. `scripts/verify-documents.mjs` retains the existing 33-configuration regression checks.
+
+Before publication, confirm the live records-intake and Emma clarification workflow, eligible-company limits and exact supported filing scope. The brochure makes no turnaround, savings or free-migration promises. The CTA currently uses the existing contact route; confirm it as the campaign destination or update `contactUrl` and regenerate the PDF. Final scope, start date, taxes and applicable conditions belong in the personalised quotation.

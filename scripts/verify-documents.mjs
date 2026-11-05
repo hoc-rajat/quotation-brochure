@@ -40,7 +40,7 @@ for(const set of sets){
 await page.getByRole('radio',{name:'The Registry · €49/mo',exact:true}).click();
 await savePdf({path:'tmp/pdfs/three-services.pdf',preferCSSPageSize:true,printBackground:true});
 await page.locator('.a4-page').first().screenshot({path:'tmp/pdfs/three-services.png'});
-await page.getByRole('tab',{name:'Brochure',exact:true}).click();
+await page.getByRole('tab',{name:'The Registry Brochure',exact:true}).click();
 await inspect('brochure');
 assert.equal(await page.locator('.a4-page').count(),3);
 assert(!await page.locator('.doc-viewport').innerText().then(t=>/Sample Trading|Sample Lead|HC-REG|Version|€500|€1,999/.test(t)));
@@ -52,10 +52,10 @@ assert((await page.evaluate(()=>window.__printed.text)).includes('Sample Trading
 await page.getByRole('button',{name:'Download Brochure PDF',exact:true}).click();
 await page.waitForFunction(()=>window.__printed?.title.includes('Brochure'));
 assert(!(await page.evaluate(()=>window.__printed.text)).includes('Sample Trading'));
-await savePdf({path:'output/pdf/registry-brochure.pdf',preferCSSPageSize:true,printBackground:true});
+await savePdf({path:'tmp/pdfs/unlimited/existing-registry-brochure.pdf',preferCSSPageSize:true,printBackground:true});
 await page.goto('http://127.0.0.1:5173');
 await page.evaluate(()=>document.fonts.ready);
-await savePdf({path:'output/pdf/branch-quotation.pdf',preferCSSPageSize:true,printBackground:true});
+await savePdf({path:'tmp/pdfs/unlimited/existing-branch-quotation.pdf',preferCSSPageSize:true,printBackground:true});
 await page.setViewportSize({width:390,height:844});
 await inspect('mobile/default');
 await page.waitForTimeout(200);

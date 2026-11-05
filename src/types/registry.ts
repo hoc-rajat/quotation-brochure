@@ -1,4 +1,4 @@
-export type DocumentKind = 'quotation' | 'brochure';
+export type DocumentKind = 'quotation' | 'brochure' | 'unlimited';
 
 export type RegistrationId = 'branch' | 'vat' | 'employer' | 'incorporation';
 export type MembershipId = 'registry' | 'unlimited';

@@ -3,6 +3,7 @@ import { useMemo, useRef, useState } from 'react';
 import { DocumentToolbar } from './components/DocumentToolbar';
 import { QuotationSetupBar } from './components/QuotationSetupBar';
 import { QuotationDocument } from './components/quotation/QuotationDocument';
+import { UnlimitedBrochureDocument } from './components/unlimited/UnlimitedBrochureDocument';
 import { BrochureDocument } from './components/brochure/BrochureDocument';
 import { useFitScale } from './hooks/useFitScale';
 import { useQuotationConfig } from './hooks/useQuotationConfig';
@@ -25,6 +26,15 @@ export function App() {
 
   const handleDownload = async (kind: DocumentKind) => {
     flushSync(() => setActive(kind));
+    if (kind === 'unlimited') {
+      const link = document.createElement('a');
+      link.href = `${import.meta.env.BASE_URL}registry-unlimited-brochure.pdf`;
+      link.download = 'Registry-Unlimited-Bookkeeping-Brochure.pdf';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      return;
+    }
     await document.fonts.ready;
     await Promise.all(Array.from(document.images, (image) => image.decode().catch(() => undefined)));
     await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
@@ -54,7 +64,7 @@ export function App() {
       
       <main ref={viewportRef} className="w-full py-8 print:p-0">
         <div className="doc-viewport space-y-8 print:space-y-0" style={{ zoom: scale }}>
-          {active === 'quotation' ? <QuotationDocument quote={quote} /> : <BrochureDocument />}
+          {active === 'quotation' ? <QuotationDocument quote={quote} /> : active === 'brochure' ? <BrochureDocument /> : <UnlimitedBrochureDocument />}
         </div>
       </main>
     </div>);

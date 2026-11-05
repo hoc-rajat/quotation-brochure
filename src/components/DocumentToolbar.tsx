@@ -14,7 +14,8 @@ interface DocumentToolbarProps {
 
 const tabs: {kind: DocumentKind;label: string;}[] = [
 { kind: 'quotation', label: 'Quotation' },
-{ kind: 'brochure', label: 'Brochure' }];
+{ kind: 'brochure', label: 'The Registry Brochure' },
+{ kind: 'unlimited', label: 'Registry Unlimited Brochure' }];
 
 
 export function DocumentToolbar({ active, onChange, onDownload, setup }: DocumentToolbarProps) {
@@ -29,7 +30,7 @@ export function DocumentToolbar({ active, onChange, onDownload, setup }: Documen
           </div>
         </div>
 
-        <div role="tablist" aria-label="Document" className="flex rounded-full bg-mist p-1">
+        <div role="tablist" aria-label="Document" className="flex flex-wrap gap-1 rounded-2xl bg-mist p-1">
           {tabs.map((tab) => {
             const selected = tab.kind === active;
             return (
@@ -62,7 +63,7 @@ export function DocumentToolbar({ active, onChange, onDownload, setup }: Documen
                 }>
                 
                 <DownloadIcon className="h-3.5 w-3.5" aria-hidden="true" />
-                Download {tab.label} PDF
+                Download {tab.kind === 'brochure' ? 'Brochure' : tab.label} PDF
               </button>);
 
           })}
